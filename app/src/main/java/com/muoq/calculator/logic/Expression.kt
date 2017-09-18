@@ -30,8 +30,13 @@ class Expression {
                     }
             }
 
-            for (i in 0..expression.size -1) {
-                
+            for (i in 0..expression.size - 1) {
+                if (expressionArg[i] == "+" && i != 0) {
+                    val temp = solver.add(expressionArg[i - 1] as BigDecimal, expressionArg[i + 1] as BigDecimal)
+                    expression[i - 1] = temp
+                    expression[i] = "null"
+                    expression[i + 1] = "null"
+                } else if (expressionArg)
             }
         }
     }
