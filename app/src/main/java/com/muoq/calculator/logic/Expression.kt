@@ -35,7 +35,6 @@ class Expression(stringArg: String = "") {
                     addOperator(operatorToAdd)
                 }
             } else if (stringArg[i] == ' ') {
-                numToAdd = ""
             } else if (stringArg[i] in listOf('(', ')')) {
                 if (prevIsOperator) {
                     addOperator(operatorToAdd)

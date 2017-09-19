@@ -15,7 +15,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        var exp1 = Expression("5*5*(5*5*9*1*(4/2/(1+1)) - 122)")
+        var exp1 = Expression("7+8-23*(19/8*(12 + 3 + 14*2) - 25) + 31")
 
         Log.i(TAG, "exp1 size: " + exp1.mutableExpression.size.toString())
 

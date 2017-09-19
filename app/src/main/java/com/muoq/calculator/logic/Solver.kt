@@ -17,9 +17,9 @@ class Solver {
 
             for (i in 0 until expression.size) {
                 val debugInt = i
-                if (expression[i] == '*' && expression[i - 1] is BigDecimal) {
+                if (expression[i] == '*') {
                     expression = solveOperation(expression, multiply, i)
-                } else if (expression[i] == '/' && expression[i - 1] is BigDecimal) {
+                } else if (expression[i] == '/') {
                     expression = solveOperation(expression, divide, i)
                 }
             }
@@ -66,13 +66,14 @@ class Solver {
         fun solveParentheses(expressionArg: MutableList<Any>, oPIndex: Int): Pair<BigDecimal, Int> {
             //closeParenthesisIndex
             var cPIndex = 0
+            var cPIndexOffset = 0
 
             var expression: MutableList<Any> = expressionArg.filterIndexed({index, _ -> index > oPIndex}).toMutableList()
 
             for (i in 0 until expression.size) {
                 var debugInt = i
                 if (expression[i] == ')') {
-                    cPIndex = i
+                    cPIndex = i - cPIndexOffset
                     break
                 }
                 else if (expression[i] == '(') {
@@ -83,7 +84,7 @@ class Solver {
                     for (j in (i + 1)..(i + 1 + prevClosingIndex)) {
                         val debugIntJ = j
                         expression[j] = "null"
-                        cPIndex--
+                        cPIndexOffset++
                     }
                 }
             }
@@ -95,7 +96,7 @@ class Solver {
 
             var tempBD = solveSimple(expression)
 
-            return Pair(tempBD, cPIndex)
+            return Pair(tempBD, cPIndex + cPIndexOffset)
         }
 
         val multiply = {x: BigDecimal, y: BigDecimal-> x.multiply(y)}
