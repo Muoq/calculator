@@ -15,19 +15,31 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        var exp1 = Expression("5 + 5 * 5 - (5 * (6- 3) + 7 * 8)")
+        var exp1 = Expression("5*5*(5*5*9*1*(4/2/(1+1)) - 122)")
 
-        Log.i(TAG, "exp1 size: " + exp1.expression.size.toString())
+        Log.i(TAG, "exp1 size: " + exp1.mutableExpression.size.toString())
 
-        exp1.expression.forEach { Log.i(TAG, it.toString())}
+        var logString = ""
 
-        Log.i(TAG, "===========")
+        exp1.expression.forEach {logString += it}
 
-        exp1.solve()
+        Log.i(TAG, logString)
 
-        exp1.expression.forEach { Log.i(TAG, it.toString());}
+        println("\n===========")
 
-        Log.i(TAG, "exp1 size: " + exp1.expression.size.toString());
+//        Log.i(TAG, "===========")
+
+        val answer = exp1.solve()
+
+        logString = ""
+
+        exp1.mutableExpression.forEach {logString += it}
+
+        Log.i(TAG, logString);
+
+        Log.i(TAG, "Answer: " + answer);
+
+        Log.i(TAG, "exp1 size: " + exp1.mutableExpression.size.toString());
 
     }
 }
