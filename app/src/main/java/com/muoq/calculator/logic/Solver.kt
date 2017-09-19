@@ -13,46 +13,45 @@ class Solver {
         val TAG = "CalculatorApp"
     }
 
-    fun parse(expression: Expression): BigDecimal {
-
-        return BigDecimal(0.0)
-    }
-
     //oPIndex = openParenthesisIndex
-    fun solveParentheses(expressionArg: MutableList<Any>, oPIndex: Int): Expression {
-
+    fun solveParentheses(expressionArg: MutableList<Any>, oPIndex: Int): Pair<BigDecimal, Int> {
         //closeParenthesisIndex
         var cPIndex = 0
 
-        for (i in 0..expressionArg.size - 1) {
-            if (expressionArg[i] == ")") {
+        var expression: MutableList<Any> = expressionArg.filter({n -> true}).toMutableList()
+
+        for (i in 0 until expression.size) {
+            if (expression[i] == ")") {
                 cPIndex = i
             }
-            else if (expressionArg[i] == "(") {
-                var tempList = mutableListOf<Any>(expressionArg.filterIndexed({index, _->
-                    index in (oPIndex + 1)..(cPIndex - 1)
-                }))
+            else if (expression[i] == "(") {
+                val tempList = expression.filterIndexed({index, _ ->
+                    index in i + 1 until expression.size
+                }).toMutableList()
 
-                tempList.forEach() {e -> Log.i(TAG, e.toString())}
+                val (parenthesisSolve, prevClosingIndex) = solveParentheses(tempList, i)
 
-                solveParentheses(tempList, i)
+                expression[i] = parenthesisSolve
+                for (j in i + 1 until prevClosingIndex) {
+                    expression[j] = "null"
+                }
             }
         }
+        expression.removeAll {e -> e == "null"}
 
-        var expression = expressionArg.filterIndexed({index, _ ->
-            index in (oPIndex + 1)..(cPIndex - 1)
-        })
+        expression = expression.filterIndexed({index, _ ->
+            index in oPIndex + 1 until cPIndex
+        }).toMutableList()
 
-
-
+        return Pair(Expression.solveSimple(expression), cPIndex)
     }
 
-    fun multiply(x: BigDecimal, y: BigDecimal) = x.multiply(y)
+    val multiply = {x: BigDecimal, y: BigDecimal-> x.multiply(y)}
 
-    fun divide(x: BigDecimal, y: BigDecimal) = x.divide(y)
+    val divide = {x: BigDecimal, y: BigDecimal-> x.divide(y)}
 
-    fun add(x: BigDecimal, y: BigDecimal) = x.add(y)
+    val add = {x: BigDecimal, y: BigDecimal-> x.add(y)}
 
-    fun subtract(x: BigDecimal, y: BigDecimal) = x.subtract(y)
+    val subtract = {x: BigDecimal, y: BigDecimal-> x.subtract(y)}
 
 }
