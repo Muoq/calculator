@@ -1,104 +1,86 @@
 package com.muoq.calculator.logic
 
-import java.math.BigDecimal
-import kotlin.*
-import kotlin.collections.*
-
 /**
- * Created by victo on 18-09-2017.
+ * Created by victo on 20-09-2017.
  */
 
-class Expression(stringArg: String = "") {
+import android.util.Log
+import com.muoq.calculator.MainActivity
+import java.math.BigDecimal
 
-    companion object {
-        val TAG = "CalculatorApp"
-    }
+class Expression {
 
-    var size = 0
+    var numbers: MutableList<Any> = mutableListOf(BigDecimal(1))
+    var operators: MutableList<Operator> = mutableListOf()
 
-    var mutableExpression: MutableList<Any> = mutableListOf()
-    
-    var expression: MutableList<Any> = mutableListOf()
+    var expression: MutableList<MutableList<Any>> = mutableListOf()
+    var operatorIndices: MutableList<Int> = mutableListOf()
+    var numberIndices: MutableList<Int> = mutableListOf()
 
     init {
-        var prevIsNum = false
-        var prevIsOperator = false
-        var numToAdd = ""
-        var operatorToAdd = '*'
 
-        for (i in 0 until stringArg.length) {
-            if (stringArg[i].toInt() in 48..57) {
-                numToAdd += stringArg[i]
-                prevIsNum = true
-                if (prevIsOperator) {
-                    prevIsOperator = false
-                    addOperator(operatorToAdd)
-                }
-            } else if (stringArg[i] == ' ') {
-            } else if (stringArg[i] in listOf('(', ')')) {
-                if (prevIsOperator) {
-                    addOperator(operatorToAdd)
-                    prevIsOperator = false
-                } else if (prevIsNum) {
-                    addBD(BigDecimal(numToAdd.toInt()))
-                    prevIsNum = false
-                    numToAdd = ""
-                }
-                addOperator(stringArg[i])
-            } else {
-                operatorToAdd = stringArg[i]
-                prevIsOperator = true
-                if (prevIsNum) {
-                    prevIsNum = false
-                    addBD(BigDecimal(numToAdd.toInt()))
-                    numToAdd = ""
-                }
-            }
-        }
+    }
 
-        if (prevIsNum) {
-            addBD(BigDecimal(numToAdd.toInt()))
+    fun addOperator(operatorArg: Operator) {
+        if (operators.isEmpty() || expression.last()[1] !is Operator) {
+            operators.add(operatorArg)
+            addMember(operators.lastIndex, valueOperator = operatorArg)
+
+        } else if (operatorArg.sequential || operators.last().sequential) {
+            operators.add(operatorArg)
+            addMember(operators.lastIndex, valueOperator = operatorArg)
+
+        } else if (expression.last()[1] is Operator) {
+            operators[operators.lastIndex] = operatorArg
+            setMemberData(expression.lastIndex, operators.lastIndex, valueOperator = operatorArg)
         }
 
     }
 
-    fun addBD(addition: BigDecimal) {
-        if (expression.size > 0 && expression.last() is BigDecimal)
+    fun addNumber(numberArg: BigDecimal) {
+        if (numbers.isEmpty() || expression.last()[1] !is BigDecimal) {
+            numbers.add(numberArg)
+            addMember(numbers.lastIndex, valueBigDecimal = numberArg)
+        } else if (expression.last()[1] is BigDecimal) {
+            numbers[numbers.lastIndex] = numberArg
+            setMemberData(expression.lastIndex, numbers.lastIndex, valueBigDecimal = numberArg)
+        }
+    }
+
+    fun setMemberData(i: Int, index: Int,
+                      valueBigDecimal: BigDecimal? = null, valueOperator: Operator? = null) {
+        if (expression.size < i) {
             return
+        }
 
-        mutableExpression.add(addition)
-        expression.add(addition)
-        size++
-    }
-
-    fun addOperator(addition: Char) {
-        if (expression.size > 0 && addition !in listOf('(', ')') &&
-                expression.last() !in listOf('(', ')') && expression.last() is Char) {
-            mutableExpression[mutableExpression.size - 1] = addition
-            expression[expression.size - 1] = addition
-        } else {
-            mutableExpression.add(addition)
-            expression.add(addition)
+        if (valueBigDecimal != null) {
+            expression[i] = mutableListOf(index, valueBigDecimal)
+        } else if (valueOperator != null) {
+            expression[i] = mutableListOf(index, valueOperator)
         }
     }
 
-    fun solve(): BigDecimal {
+    fun addMember(index: Int,valueBigDecimal: BigDecimal? = null, valueOperator: Operator? = null) {
+        if (valueBigDecimal != null) {
+            expression.add(mutableListOf(index, valueBigDecimal))
+        } else if (valueOperator != null) {
+            expression.add(mutableListOf(index, valueOperator))
+        }
+    }
 
-        for (i: Int in 0 until mutableExpression.size) {
-            if (mutableExpression[i] == '(') {
-                val (parenthesisSolve, closingIndex) = Solver.solveParentheses(mutableExpression, i)
+    override fun toString(): String {
+        var returnString = ""
 
-                mutableExpression[i] = parenthesisSolve
-                for (j in (i + 1)..(i + 1 + closingIndex)) {
-                    mutableExpression[j] = "null"
-                }
+        expression.forEachIndexed {i, e ->
+            if (e[1] is Operator) {
+                Log.i(MainActivity.TAG, "true")
+                returnString += (e[1] as Operator).toString()
             }
+            else if (e[1] is BigDecimal)
+                returnString += (e[1] as BigDecimal).toString()
         }
-        mutableExpression.removeAll { e -> e == "null"}
-        
-        val answer = Solver.solveSimple(mutableExpression)
-        
-        return answer
+
+        return returnString
     }
 
 }
