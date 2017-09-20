@@ -47,6 +47,26 @@ class Expression {
         }
     }
 
+    fun setNumber(index: Int, numberArg: BigDecimal) {
+        if (expression[index][1] is BigDecimal) {
+            expression[index][1] = numberArg
+            numbers[expression[index][0] as Int] = numberArg
+        } else {
+
+            var tempIndex = index
+            while (expression[tempIndex][1] !is BigDecimal) {
+                tempIndex--
+            }
+
+            var numbersIndex = expression[tempIndex][0] as Int + 1
+
+            numbers[numbersIndex] = numberArg
+            expression[index][0] = numbersIndex
+            expression[index][1] = numberArg
+        }
+
+    }
+
     fun setMemberData(i: Int, index: Int,
                       valueBigDecimal: BigDecimal? = null, valueOperator: Operator? = null) {
         if (expression.size < i) {
@@ -66,6 +86,10 @@ class Expression {
         } else if (valueOperator != null) {
             expression.add(mutableListOf(index, valueOperator))
         }
+    }
+
+    fun getExpressionList(): MutableList<MutableList<Any>> {
+        return expression
     }
 
     override fun toString(): String {
