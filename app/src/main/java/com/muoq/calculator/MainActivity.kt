@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import com.muoq.calculator.logic.Expression
 import com.muoq.calculator.logic.Operator
+import com.muoq.calculator.logic.Solver
 import java.math.BigDecimal
 
 class MainActivity : AppCompatActivity() {
@@ -60,8 +61,12 @@ class MainActivity : AppCompatActivity() {
         exp1.addOperator(Operator(Operator.O_PARENTHESIS))
         exp1.addOperator(Operator(Operator.SUBTRACT))
 
+        exp1.setNumber(2, BigDecimal(6))
+        exp1.setNumber(1, BigDecimal(5))
+
         Log.i(TAG, exp1.toString());
 
+        exp1.solve()
 //        Log.i(TAG, (exp1.expression[0][1] is Operator).toString())
 
 //        exp1.expression.forEach {Log.i(TAG, it.toString())}

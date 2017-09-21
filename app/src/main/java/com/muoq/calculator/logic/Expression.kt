@@ -10,10 +10,16 @@ import java.math.BigDecimal
 
 class Expression {
 
-    var numbers: MutableList<Any> = mutableListOf(BigDecimal(1))
+    companion object {
+        val TAG = "CalculatorExpression"
+    }
+
+    var size = 0
+
+    var numbers: MutableList<BigDecimal> = mutableListOf()
     var operators: MutableList<Operator> = mutableListOf()
 
-    var expression: MutableList<MutableList<Any>> = mutableListOf()
+    var expression: MutableList<MutableList<Any?>> = mutableListOf()
     var operatorIndices: MutableList<Int> = mutableListOf()
     var numberIndices: MutableList<Int> = mutableListOf()
 
@@ -34,7 +40,6 @@ class Expression {
             operators[operators.lastIndex] = operatorArg
             setMemberData(expression.lastIndex, operators.lastIndex, valueOperator = operatorArg)
         }
-
     }
 
     fun addNumber(numberArg: BigDecimal) {
@@ -48,7 +53,9 @@ class Expression {
     }
 
     fun setNumber(index: Int, numberArg: BigDecimal) {
-        if (expression[index][1] is BigDecimal) {
+        if (expression.size < index){
+            throw ArrayIndexOutOfBoundsException()
+        } else if (expression[index][1] is BigDecimal) {
             expression[index][1] = numberArg
             numbers[expression[index][0] as Int] = numberArg
         } else {
@@ -56,11 +63,18 @@ class Expression {
             var tempIndex = index
             while (expression[tempIndex][1] !is BigDecimal) {
                 tempIndex--
+
+                Log.i(TAG, expression[index][1].toString())
             }
 
             var numbersIndex = expression[tempIndex][0] as Int + 1
 
-            numbers[numbersIndex] = numberArg
+            if (numbers.size == numbersIndex) {
+                numbers.add(numberArg)
+            } else {
+                numbers[numbersIndex] = numberArg
+            }
+
             expression[index][0] = numbersIndex
             expression[index][1] = numberArg
         }
@@ -70,7 +84,7 @@ class Expression {
     fun setMemberData(i: Int, index: Int,
                       valueBigDecimal: BigDecimal? = null, valueOperator: Operator? = null) {
         if (expression.size < i) {
-            return
+            throw IndexOutOfBoundsException()
         }
 
         if (valueBigDecimal != null) {
@@ -80,16 +94,43 @@ class Expression {
         }
     }
 
-    fun addMember(index: Int,valueBigDecimal: BigDecimal? = null, valueOperator: Operator? = null) {
+    fun setNull(index: Int) {
+        expression[index] = mutableListOf(null)
+    }
+
+    private fun addMember(index: Int,valueBigDecimal: BigDecimal? = null, valueOperator: Operator? = null) {
         if (valueBigDecimal != null) {
             expression.add(mutableListOf(index, valueBigDecimal))
         } else if (valueOperator != null) {
             expression.add(mutableListOf(index, valueOperator))
         }
+
+        size++
     }
 
-    fun getExpressionList(): MutableList<MutableList<Any>> {
+    fun getList(): MutableList<MutableList<Any?>> {
         return expression
+    }
+
+    fun getNumber(index: Int): BigDecimal? {
+        if (expression[index][1] !is BigDecimal) {
+            return null
+        } else {
+            return expression[index][1] as BigDecimal
+        }
+    }
+
+    fun getOperator(index: Int): Operator? {
+        if (expression[index][1] !is Operator) {
+            return null
+        } else {
+            return expression[index][1] as Operator
+        }
+    }
+
+    fun solve() {
+        var solver = Solver()
+        solver.solve(this)
     }
 
     override fun toString(): String {
