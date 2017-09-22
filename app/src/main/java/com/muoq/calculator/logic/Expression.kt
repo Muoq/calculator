@@ -8,7 +8,7 @@ import android.util.Log
 import com.muoq.calculator.MainActivity
 import java.math.BigDecimal
 
-class Expression {
+class Expression(stringArg: String = "0") {
 
     companion object {
         val TAG = "CalculatorExpression"
@@ -23,7 +23,48 @@ class Expression {
     var operatorIndices: MutableList<Int> = mutableListOf()
     var numberIndices: MutableList<Int> = mutableListOf()
 
+    private var removeQueue: MutableList<Int> = mutableListOf()
+
     init {
+
+        var prevIsNum = false
+        var prevIsOperator = false
+        var numToAdd = ""
+        var operatorToAdd = '*'
+
+        for (i in 0 until stringArg.length) {
+            if (stringArg[i].toInt() in 48..57) {
+                numToAdd += stringArg[i]
+                prevIsNum = true
+                if (prevIsOperator) {
+                    prevIsOperator = false
+                    addOperator(Operator(operatorToAdd))
+                }
+            } else if (stringArg[i] == ' ') {
+            } else if (stringArg[i] in listOf('(', ')')) {
+                if (prevIsOperator) {
+                    addOperator(Operator(operatorToAdd))
+                    prevIsOperator = false
+                } else if (prevIsNum) {
+                    addNumber(BigDecimal(numToAdd.toInt()))
+                    prevIsNum = false
+                    numToAdd = ""
+                }
+                addOperator(Operator(stringArg[i]))
+            } else {
+                operatorToAdd = stringArg[i]
+                prevIsOperator = true
+                if (prevIsNum) {
+                    prevIsNum = false
+                    addNumber(BigDecimal(numToAdd.toInt()))
+                    numToAdd = ""
+                }
+            }
+        }
+
+        if (prevIsNum) {
+            addNumber(BigDecimal(numToAdd.toInt()))
+        }
 
     }
 
@@ -63,8 +104,6 @@ class Expression {
             var tempIndex = index
             while (expression[tempIndex][1] !is BigDecimal) {
                 tempIndex--
-
-                Log.i(TAG, expression[index][1].toString())
             }
 
             var numbersIndex = expression[tempIndex][0] as Int + 1
@@ -95,7 +134,7 @@ class Expression {
     }
 
     fun setNull(index: Int) {
-        expression[index] = mutableListOf(null)
+        expression[index] = mutableListOf(null, null)
     }
 
     private fun addMember(index: Int,valueBigDecimal: BigDecimal? = null, valueOperator: Operator? = null) {
@@ -106,6 +145,10 @@ class Expression {
         }
 
         size++
+    }
+
+    fun get(index: Int): Any? {
+        return expression[index]
     }
 
     fun getList(): MutableList<MutableList<Any?>> {
@@ -121,11 +164,28 @@ class Expression {
     }
 
     fun getOperator(index: Int): Operator? {
-        if (expression[index][1] !is Operator) {
+        if (expression[index][0] == null) {
+            return null
+        }
+        else if (expression[index][1] !is Operator) {
             return null
         } else {
             return expression[index][1] as Operator
         }
+    }
+
+    fun queueRemove(index: Int) {
+        removeQueue.add(index)
+    }
+
+    fun removeQueued() {
+        removeQueue.sort()
+        removeQueue.reverse()
+        for (e in removeQueue) {
+            expression.removeAt(e)
+        }
+
+        Log.i(TAG, this.toString())
     }
 
     fun solve() {
@@ -138,7 +198,6 @@ class Expression {
 
         expression.forEachIndexed {i, e ->
             if (e[1] is Operator) {
-                Log.i(MainActivity.TAG, "true")
                 returnString += (e[1] as Operator).toString()
             }
             else if (e[1] is BigDecimal)

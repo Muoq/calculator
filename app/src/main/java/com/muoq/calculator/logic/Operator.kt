@@ -7,7 +7,8 @@ import java.math.RoundingMode
  * Created by victo on 18-09-2017.
  */
 
-class Operator(operationIDArg: Int = 1) {
+class Operator private constructor() {
+
 
     companion object {
         val PARENTHESIS_FUN = {x: BigDecimal, y: BigDecimal -> x}
@@ -34,9 +35,20 @@ class Operator(operationIDArg: Int = 1) {
 
     var sequential = false
 
-    init {
+    constructor(operationIDArg: Int): this() {
         if (operationIDArg != MULTIPLY) {
             setOperation(operationIDArg)
+        }
+    }
+
+    constructor(charArg: Char): this() {
+        when (charArg) {
+            '(' -> setOperation(O_PARENTHESIS)
+            ')' -> setOperation(C_PARENTHESIS)
+            '*' -> setOperation(MULTIPLY)
+            '/' -> setOperation(DIVIDE)
+            '+' -> setOperation(ADD)
+            '-' -> setOperation(SUBTRACT)
         }
     }
 

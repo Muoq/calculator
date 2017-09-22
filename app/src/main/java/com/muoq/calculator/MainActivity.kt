@@ -19,7 +19,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-//        var exp1 = Expression("7+8-23*(19/8*(12 + 3 + 14*2) - 25) + 31")
 //
 //        Log.i(TAG, "exp1 size: " + exp1.mutableExpression.size.toString())
 //
@@ -51,25 +50,28 @@ class MainActivity : AppCompatActivity() {
 
         Log.i(TAG, op1.hierarchy.toString())
 
-        var exp1 = Expression()
+//        var exp1 = Expression()
+//
+//        exp1.addOperator(Operator(Operator.ADD))
+//        exp1.addNumber(BigDecimal(314))
+//        exp1.addNumber(BigDecimal(315))
+//        exp1.addOperator(Operator(Operator.MULTIPLY))
+//        exp1.addOperator(Operator(Operator.DIVIDE))
+//        exp1.addOperator(Operator(Operator.O_PARENTHESIS))
+//        exp1.addOperator(Operator(Operator.SUBTRACT))
+//
+//        exp1.setNumber(2, BigDecimal(6))
+//        exp1.setNumber(1, BigDecimal(5))
 
-        exp1.addOperator(Operator(Operator.ADD))
-        exp1.addNumber(BigDecimal(314))
-        exp1.addNumber(BigDecimal(315))
-        exp1.addOperator(Operator(Operator.MULTIPLY))
-        exp1.addOperator(Operator(Operator.DIVIDE))
-        exp1.addOperator(Operator(Operator.O_PARENTHESIS))
-        exp1.addOperator(Operator(Operator.SUBTRACT))
+        val exp1 = Expression("7+8-23*(19/8*(12 + 3 + 14*2) - 25) + 31")
 
-        exp1.setNumber(2, BigDecimal(6))
-        exp1.setNumber(1, BigDecimal(5))
-
-        Log.i(TAG, exp1.toString());
+        Log.i(TAG, exp1.toString())
 
         exp1.solve()
+
 //        Log.i(TAG, (exp1.expression[0][1] is Operator).toString())
 
-//        exp1.expression.forEach {Log.i(TAG, it.toString())}
+        Log.i(TAG, exp1.toString() + " LAST")
 
     }
 }

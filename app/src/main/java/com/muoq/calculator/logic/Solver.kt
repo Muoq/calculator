@@ -13,16 +13,25 @@ class Solver {
         val TAG = "CalculatorSolver"
     }
 
-    fun solve(expressionArg: Expression): BigDecimal {
+    fun solve(expression: Expression): BigDecimal {
 
-        var expression = expressionArg.getList().filter { n -> true}
+        expression.getList().forEachIndexed {index, e ->
+            if (e[1] is Operator && (e[1] as Operator).ID == Operator.O_PARENTHESIS) {
 
-        expression.forEachIndexed {index, e ->
-            if (e[1] == Operator.O_PARENTHESIS) {
-                val (parenthesisSolve, prevCIndex) = solveParentheses(expressionArg, index)
+                val (parenthesisSolve, prevCIndex) = solveParentheses(expression, index)
+                expression.setNumber(index, parenthesisSolve)
 
-                expressionArg.setNumber(index, parenthesisSolve)
-//                for (j in )
+                for (i in index + 1..prevCIndex) {
+                    expression.setNull(i)
+                }
+
+                for (i in index + 1 until expression.size) {
+                    if (expression.get(i) == null) {
+                        expression.queueRemove(i)
+                    }
+                }
+
+                expression.removeQueued()
             }
         }
 
@@ -48,16 +57,12 @@ class Solver {
 
                     for (j in i + 1..prevCIndex) {
                         expression.setNull(j)
-                        expression.getList().forEach {
-                            Log.i(TAG, it.toString())
-                        }
                     }
                 }
             }
         }
 
         return Pair(BigDecimal(0), cIndex)
-
     }
 
 }
