@@ -174,6 +174,30 @@ class Expression(stringArg: String = "0") {
         }
     }
 
+    fun getOperandIndices(index: Int): Pair<Int, Int>? {
+        if (expression[index][1] !is Operator) {
+            return null
+        }
+
+        var loopCtrX = index
+        while (expression[loopCtrX][1] !is BigDecimal) {
+            if (loopCtrX == 0 || expression[index][1] == null) {
+                return null
+            }
+            loopCtrX--
+        }
+
+        var loopCtrY = index
+        while (expression[loopCtrY][1] !is BigDecimal) {
+            if (loopCtrY == expression.size - 1 || expression[index][1] == null) {
+                return null
+            }
+            loopCtrY++
+        }
+
+        return Pair(loopCtrX, loopCtrY)
+    }
+
     fun queueRemove(index: Int) {
         removeQueue.add(index)
     }

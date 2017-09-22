@@ -65,4 +65,28 @@ class Solver {
         return Pair(BigDecimal(0), cIndex)
     }
 
+    fun solveSimple(expression: Expression): BigDecimal {
+        var operandIndices: Pair<Int, Int>? = Pair(0, 0)
+
+        for (i in 0 until expression.size) {
+            if (expression.getList()[i][1] != null) {
+                if (expression.getList()[i][1] is Operator &&
+                        expression.getOperator(i)!!.hierarchy != Operator.PARENTHESIS_HIERARCHY) {
+
+                    operandIndices = expression.getOperandIndices(i)
+
+                    if (operandIndices != null) {
+                        val tempOperation = expression.getOperator(i)!!.operation
+                        val answer = tempOperation(expression.getNumber(operandIndices.component1()) as BigDecimal,
+                                expression.getNumber(operandIndices.component2()) as BigDecimal)
+
+                        expression.setNumber(operandIndices.component1(),answer)
+                    }
+
+
+                }
+            }
+        }
+    }
+
 }
