@@ -73,5 +73,7 @@ class MainActivity : AppCompatActivity() {
 
         Log.i(TAG, exp1.toString() + " LAST")
 
+        Log.i(TAG, exp1.solution.toString())
+
     }
 }

@@ -15,31 +15,15 @@ class Solver {
 
     fun solve(expression: Expression): BigDecimal {
 
-        expression.getList().forEachIndexed {index, e ->
-            if (e[1] is Operator && (e[1] as Operator).ID == Operator.O_PARENTHESIS) {
+        expression.addOperator(Operator(Operator.C_PARENTHESIS))
 
-                val (parenthesisSolve, prevCIndex) = solveParentheses(expression, index)
-                expression.setNumber(index, parenthesisSolve)
+        val (parenthesisSolve, prevCIndex) = solveParentheses(expression, 0)
 
-                for (i in index + 1..prevCIndex) {
-                    expression.setNull(i)
-                }
-
-                for (i in index + 1 until expression.size) {
-                    if (expression.get(i) == null) {
-                        expression.queueRemove(i)
-                    }
-                }
-
-                expression.removeQueued()
-            }
-        }
-
-        return BigDecimal(0)
+        return parenthesisSolve
     }
 
     // oPIndex = opening parenthesis index
-    fun solveParentheses(expressionArg: Expression, oIndex: Int): Pair<BigDecimal, Int>{
+    fun solveParentheses2(expressionArg: Expression, oIndex: Int): Pair<BigDecimal, Int>{
 
         var cIndex = 0
         var expression = expressionArg
@@ -52,7 +36,7 @@ class Solver {
                 }
                 else if (expression.getOperator(i)!!.ID == Operator.O_PARENTHESIS) {
 
-                    val (parenthesisSolve, prevCIndex) = solveParentheses(expression, i)
+                    val (parenthesisSolve, prevCIndex) = solveParentheses2(expression, i)
                     expression.setNumber(i, parenthesisSolve)
 
                     for (j in i + 1..prevCIndex) {
@@ -65,28 +49,69 @@ class Solver {
         return Pair(BigDecimal(0), cIndex)
     }
 
-    fun solveSimple(expression: Expression): BigDecimal {
-        var operandIndices: Pair<Int, Int>? = Pair(0, 0)
+    fun solveParentheses(expressionArg: Expression, oIndex: Int): Pair<BigDecimal, Int> {
 
-        for (i in 0 until expression.size) {
-            if (expression.getList()[i][1] != null) {
-                if (expression.getList()[i][1] is Operator &&
-                        expression.getOperator(i)!!.hierarchy != Operator.PARENTHESIS_HIERARCHY) {
+        var cIndex = 0;
+        var expressionList = expressionArg.getValueList().filterIndexed {index, _ ->
+            index > oIndex + 1
+        }.toMutableList()
 
-                    operandIndices = expression.getOperandIndices(i)
+        for (i in oIndex + 1 until expressionArg.size) {
+            val operatorAtI = expressionArg.getOperator(i)
 
-                    if (operandIndices != null) {
-                        val tempOperation = expression.getOperator(i)!!.operation
-                        val answer = tempOperation(expression.getNumber(operandIndices.component1()) as BigDecimal,
-                                expression.getNumber(operandIndices.component2()) as BigDecimal)
+            if (operatorAtI != null) {
+                if (operatorAtI.ID == Operator.O_PARENTHESIS) {
+                    cIndex = i
+                    break
+                } else if (operatorAtI.ID == Operator.C_PARENTHESIS) {
+                    val (parenthesisSolve, prevCIndex) = solveParentheses(expressionArg, i)
+                    expressionArg.setNumber(i, parenthesisSolve)
 
-                        expression.setNumber(operandIndices.component1(),answer)
+                    for (j in i + 1..prevCIndex) {
+                        expressionArg.queueRemove(j)
                     }
-
-
                 }
             }
         }
+        cIndex -= expressionArg.removeQueued()
+
+        expressionList = expressionList.filterIndexed({index, _ -> index < cIndex}).toMutableList()
+        val answer = solveSimple(expressionList)
+
+        return Pair(answer, cIndex)
+    }
+
+    fun solveSimple(expressionArg: MutableList<Any?>): BigDecimal {
+        /*TODO: Fix function by comparing hierarchies of operators and performing operations accordingly*/
+
+        val expression = expressionArg.filter{_ -> true}.toMutableList()
+
+        if (expression.size == 3) {
+            val operator = expression[1]
+            if (operator is Operator) {
+                return operator.operation(expression[0] as BigDecimal, expression[2] as BigDecimal)
+            }
+        }
+
+        for (i in 0 until expression.size) {
+            val valueAtI = expression[i]
+
+            if (valueAtI != null) {
+                if (valueAtI is Operator) {
+                    Log.i(TAG, "valAtI is an operator!")
+
+                    expression[i] = valueAtI.operation(expression[i - 1] as BigDecimal,
+                                                        expression[i + 1] as BigDecimal)
+                    expression[i] = null
+                    expression[i + 1] = null
+                }
+            }
+
+        }
+        expression.removeAll {it == null}
+        solveSimple(expression)
+
+        return expressionArg[0] as BigDecimal
     }
 
 }

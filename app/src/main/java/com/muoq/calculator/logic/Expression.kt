@@ -25,6 +25,8 @@ class Expression(stringArg: String = "0") {
 
     private var removeQueue: MutableList<Int> = mutableListOf()
 
+    var solution = BigDecimal(0)
+
     init {
 
         var prevIsNum = false
@@ -155,6 +157,16 @@ class Expression(stringArg: String = "0") {
         return expression
     }
 
+    fun getValueList(): MutableList<Any?> {
+        val returnList: MutableList<Any?> = mutableListOf()
+
+        for (i in 0 until expression.size) {
+            returnList.add(expression[i][1])
+        }
+
+        return returnList
+    }
+
     fun getNumber(index: Int): BigDecimal? {
         if (expression[index][1] !is BigDecimal) {
             return null
@@ -202,7 +214,7 @@ class Expression(stringArg: String = "0") {
         removeQueue.add(index)
     }
 
-    fun removeQueued() {
+    fun removeQueued(): Int {
         removeQueue.sort()
         removeQueue.reverse()
         for (e in removeQueue) {
@@ -210,11 +222,16 @@ class Expression(stringArg: String = "0") {
         }
 
         Log.i(TAG, this.toString())
+
+        val removeQueueSize = removeQueue.size
+        removeQueue = mutableListOf()
+
+        return removeQueueSize
     }
 
     fun solve() {
         var solver = Solver()
-        solver.solve(this)
+        solution = solver.solve(this)
     }
 
     override fun toString(): String {
