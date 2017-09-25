@@ -219,6 +219,7 @@ class Expression(stringArg: String = "0") {
         removeQueue.reverse()
         for (e in removeQueue) {
             expression.removeAt(e)
+            size--
         }
 
         Log.i(TAG, this.toString())
@@ -227,6 +228,16 @@ class Expression(stringArg: String = "0") {
         removeQueue = mutableListOf()
 
         return removeQueueSize
+    }
+
+    fun removeAllIndexed(predicate: (Int, Any) -> Boolean) {
+        for (i in 0 until size) {
+            if (predicate(i, expression[i])) {
+                queueRemove(i)
+                size--
+            }
+            removeQueued()
+        }
     }
 
     fun solve() {

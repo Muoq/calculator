@@ -17,7 +17,7 @@ class Solver {
 
         expression.addOperator(Operator(Operator.C_PARENTHESIS))
 
-        val (parenthesisSolve, prevCIndex) = solveParentheses(expression, 0)
+        val (parenthesisSolve, prevCIndex) = solveParentheses(expression, -1)
 
         return parenthesisSolve
     }
@@ -53,65 +53,72 @@ class Solver {
 
         var cIndex = 0;
         var expressionList = expressionArg.getValueList().filterIndexed {index, _ ->
-            index > oIndex + 1
+            index >= oIndex + 1
         }.toMutableList()
 
         for (i in oIndex + 1 until expressionArg.size) {
             val operatorAtI = expressionArg.getOperator(i)
 
             if (operatorAtI != null) {
-                if (operatorAtI.ID == Operator.O_PARENTHESIS) {
+                if (operatorAtI.ID == Operator.C_PARENTHESIS) {
                     cIndex = i
                     break
-                } else if (operatorAtI.ID == Operator.C_PARENTHESIS) {
+                } else if (operatorAtI.ID == Operator.O_PARENTHESIS) {
                     val (parenthesisSolve, prevCIndex) = solveParentheses(expressionArg, i)
                     expressionArg.setNumber(i, parenthesisSolve)
+                    expressionList[i - oIndex - 1] = parenthesisSolve
 
                     for (j in i + 1..prevCIndex) {
                         expressionArg.queueRemove(j)
                     }
+
+                    expressionList = expressionList.filterIndexed {index, _ ->
+                        index < i - oIndex || index >= prevCIndex - oIndex - 1
+                    }.toMutableList()
                 }
             }
         }
         cIndex -= expressionArg.removeQueued()
 
-        expressionList = expressionList.filterIndexed({index, _ -> index < cIndex}).toMutableList()
+        expressionList = expressionArg.getValueList().filterIndexed({index, _ ->
+            index > oIndex && index < cIndex
+        }).toMutableList()
+
         val answer = solveSimple(expressionList)
 
         return Pair(answer, cIndex)
     }
 
-    fun solveSimple(expressionArg: MutableList<Any?>): BigDecimal {
+    fun solveSimple(expressionArg: MutableList<Any?>,
+                    operatorHierarchy: Int = Operator.PARENTHESIS_HIERARCHY): BigDecimal {
         /*TODO: Fix function by comparing hierarchies of operators and performing operations accordingly*/
 
-        val expression = expressionArg.filter{_ -> true}.toMutableList()
-
-        if (expression.size == 3) {
-            val operator = expression[1]
-            if (operator is Operator) {
-                return operator.operation(expression[0] as BigDecimal, expression[2] as BigDecimal)
-            }
+        if (operatorHierarchy < 0) {
+            return expressionArg[0] as BigDecimal
         }
 
-        for (i in 0 until expression.size) {
-            val valueAtI = expression[i]
+        var expression = expressionArg.filter({_ -> true}).toMutableList()
 
-            if (valueAtI != null) {
-                if (valueAtI is Operator) {
-                    Log.i(TAG, "valAtI is an operator!")
+        var expressionSize = expression.size
+        var i = 0
+        while (i < expressionSize) {
+            val operator = expression[i]
 
-                    expression[i] = valueAtI.operation(expression[i - 1] as BigDecimal,
+            if (operator is Operator && operator.hierarchy == operatorHierarchy) {
+                expression[i - 1] = operator.operation(expression[i - 1]as BigDecimal,
                                                         expression[i + 1] as BigDecimal)
-                    expression[i] = null
-                    expression[i + 1] = null
-                }
+                expression.removeAt(i + 1)
+                expression.removeAt(i)
+                expressionSize -= 2
+                i--
             }
 
+            i++
         }
-        expression.removeAll {it == null}
-        solveSimple(expression)
 
-        return expressionArg[0] as BigDecimal
+        val solution = solveSimple(expression, operatorHierarchy - 1)
+
+        return solution
     }
 
 }
