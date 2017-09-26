@@ -53,16 +53,24 @@ class Solver {
 
         var cIndex = 0;
         var expressionList = expressionArg.getValueList().filterIndexed {index, _ ->
-            index >= oIndex + 1
+            index > oIndex
         }.toMutableList()
 
-        for (i in oIndex + 1 until expressionArg.size) {
+        var expressionSize = expressionArg.size
+        var i = oIndex + 1
+        while (i < expressionSize) {
+
             val operatorAtI = expressionArg.getOperator(i)
 
             if (operatorAtI != null) {
+
                 if (operatorAtI.ID == Operator.C_PARENTHESIS) {
-                    cIndex = i
-                    break
+                    expressionList = expressionArg.getValueList().filterIndexed({index, _ ->
+                        index in oIndex + 1 until i
+                    }).toMutableList()
+
+                    return Pair (solveSimple(expressionList), i)
+
                 } else if (operatorAtI.ID == Operator.O_PARENTHESIS) {
                     val (parenthesisSolve, prevCIndex) = solveParentheses(expressionArg, i)
                     expressionArg.setNumber(i, parenthesisSolve)
@@ -72,21 +80,17 @@ class Solver {
                         expressionArg.queueRemove(j)
                     }
 
-                    expressionList = expressionList.filterIndexed {index, _ ->
-                        index < i - oIndex || index >= prevCIndex - oIndex - 1
-                    }.toMutableList()
+                    expressionArg.removeQueued()
+
+                    expressionSize = expressionArg.size
                 }
             }
+
+            i++
         }
-        cIndex -= expressionArg.removeQueued()
 
-        expressionList = expressionArg.getValueList().filterIndexed({index, _ ->
-            index > oIndex && index < cIndex
-        }).toMutableList()
-
-        val answer = solveSimple(expressionList)
-
-        return Pair(answer, cIndex)
+        expressionList = expressionArg.getValueList().filter({_ -> true}).toMutableList()
+        return Pair(solveSimple(expressionList), i)
     }
 
     fun solveSimple(expressionArg: MutableList<Any?>,

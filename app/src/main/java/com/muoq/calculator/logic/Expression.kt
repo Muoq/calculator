@@ -5,8 +5,8 @@ package com.muoq.calculator.logic
  */
 
 import android.util.Log
-import com.muoq.calculator.MainActivity
 import java.math.BigDecimal
+import java.security.InvalidParameterException
 
 class Expression(stringArg: String = "0") {
 
@@ -144,6 +144,8 @@ class Expression(stringArg: String = "0") {
             expression.add(mutableListOf(index, valueBigDecimal))
         } else if (valueOperator != null) {
             expression.add(mutableListOf(index, valueOperator))
+        } else {
+            throw InvalidParameterException("only one null parameter is permitted in this function.")
         }
 
         size++
@@ -176,7 +178,10 @@ class Expression(stringArg: String = "0") {
     }
 
     fun getOperator(index: Int): Operator? {
-        if (expression[index][0] == null) {
+        if (index < 0) {
+            return null
+        }
+        else if (expression[index][0] == null) {
             return null
         }
         else if (expression[index][1] !is Operator) {

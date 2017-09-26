@@ -8,6 +8,8 @@ import com.muoq.calculator.logic.Expression
 import com.muoq.calculator.logic.Operator
 import com.muoq.calculator.logic.Solver
 import java.math.BigDecimal
+import java.math.MathContext
+import java.math.RoundingMode
 
 class MainActivity : AppCompatActivity() {
 
@@ -63,7 +65,7 @@ class MainActivity : AppCompatActivity() {
 //        exp1.setNumber(2, BigDecimal(6))
 //        exp1.setNumber(1, BigDecimal(5))
 
-        val exp1 = Expression("7+8-23*(19/8*(12 + 3 + 14*2) - 25) + 31")
+        val exp1 = Expression("7+8-23*(19/8*(12 + 3 + 14*2) - 25) + 31*4*5*9/2/8")
 
         Log.i(TAG, exp1.toString())
 
@@ -73,7 +75,7 @@ class MainActivity : AppCompatActivity() {
 
         Log.i(TAG, exp1.toString() + " LAST")
 
-        Log.i(TAG, exp1.solution.toString())
+        Log.i(TAG, exp1.solution.setScale(6, RoundingMode.HALF_UP).toString())
 
     }
 }
