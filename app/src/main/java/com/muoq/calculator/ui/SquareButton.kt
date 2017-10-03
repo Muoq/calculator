@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.Button
 
-class SquareButton: Button {
+open class SquareButton: Button {
 
     constructor(context: Context): super(context)
 
