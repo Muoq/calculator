@@ -4,14 +4,28 @@ import org.junit.Test
 
 import org.junit.Assert.*
 
-/**
- * Example local unit test, which will execute on the development machine (host).
- *
- * See [testing documentation](http://d.android.com/tools/testing).
- */
+import com.muoq.calculator.logic.Expression
+import com.muoq.calculator.logic.Operator
+import java.math.BigDecimal
+
 class ExampleUnitTest {
+
     @Test
-    fun addition_isCorrect() {
-        assertEquals(4, 2 + 2)
+    fun createExpression() {
+        val exp1 = Expression()
+
+        exp1.addNumber(BigDecimal(7))
+        exp1.addOperator(Operator(Operator.MULTIPLY))
+        exp1.addNumber(BigDecimal(7))
+        exp1.addOperator(Operator(Operator.ADD))
+        exp1.addNumber(BigDecimal(7))
+        exp1.addOperator(Operator(Operator.SUBTRACT))
+        exp1.addNumber(BigDecimal(7))
+        exp1.addOperator(Operator(Operator.DIVIDE))
+        exp1.addNumber(BigDecimal(7))
+        exp1.addNumber(BigDecimal(7))
+
+        println(exp1.getExpressionAsString())
     }
+
 }

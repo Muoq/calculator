@@ -1,10 +1,10 @@
-package com.muoq.calculator.logic
+package incomplete
 
 /**
  * Created by victor on 20/09/2017.
  */
 
-import android.util.Log
+import com.muoq.calculator.logic.Operator
 import java.math.BigDecimal
 
 class Solver {
@@ -19,6 +19,12 @@ class Solver {
             expression.remove(expression.size - 1)
 
         val (parenthesisSolve, prevCIndex) = solveParentheses(expression, -1)
+
+        return parenthesisSolve
+    }
+
+    fun solveUntil(index: Int, expression: Expression): BigDecimal {
+        val (parenthesisSolve, prevCIndex) = solveParentheses(expression, index - 2)
 
         return parenthesisSolve
     }
@@ -69,7 +75,6 @@ class Solver {
 
     fun solveSimple(expressionArg: MutableList<Any?>,
                     operatorHierarchy: Int = Operator.PARENTHESIS_HIERARCHY): BigDecimal {
-        /*TODO: Fix function by comparing hierarchies of operators and performing operations accordingly*/
 
         if (operatorHierarchy < 0) {
             return expressionArg[0] as BigDecimal

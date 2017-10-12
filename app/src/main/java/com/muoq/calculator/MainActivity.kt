@@ -28,7 +28,20 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-        updateText()
+        val exp1 = Expression()
+
+        exp1.addNumber(BigDecimal(7))
+        exp1.addOperator(Operator(Operator.MULTIPLY))
+        exp1.addNumber(BigDecimal(7))
+        exp1.addOperator(Operator(Operator.ADD))
+        exp1.addNumber(BigDecimal(7))
+        exp1.addOperator(Operator(Operator.SUBTRACT))
+        exp1.addNumber(BigDecimal(7))
+        exp1.addOperator(Operator(Operator.DIVIDE))
+        exp1.addNumber(BigDecimal(7))
+        exp1.addNumber(BigDecimal(7))
+
+        Log.i(TAG, exp1.getExpressionAsString())
 
         val numButtonList: List<Button> = listOf(findViewById(R.id.btn_0), findViewById(R.id.btn_1),
                                                     findViewById(R.id.btn_2), findViewById(R.id.btn_3),
@@ -55,40 +68,39 @@ class MainActivity : AppCompatActivity() {
         val equalsButton: Button = findViewById(R.id.btn_equals)
         equalsButton.setOnClickListener(EqualsButtonListener())
     }
-    
-    fun updateText(textArg: String? = null) {
-        if (textArg == null) {
-            findViewById<TextView>(R.id.expression_input_view).setText(expression.toString())
-        } else {
-            findViewById<TextView>(R.id.expression_input_view).setText(textArg)
-        }
-        findViewById<TextView>(R.id.expression_view).setText(expression.getFull().toString())
+
+    fun updateText(viewFinderText: String = "") {
+        findViewById<TextView>(R.id.expression_input_view).setText(viewFinderText)
+
+        findViewById<TextView>(R.id.expression_view).setText(expression.getExpressionAsString())
     }
 
     inner class DelButtonListener : View.OnClickListener {
 
         override fun onClick(v: View?) {
-
-            if (expression.size > 0) {
-                if (expression.getLast() is BigDecimal) {
-                    if ((expression.getLast() as BigDecimal).toString().length == 1) {
-                        expression.remove(expression.size - 1)
-
-                        if (expression.size == 0) {
-                            expression.addNumber(BigDecimal(0))
-                        }
-                    } else {
-                        var expressionString = expression.numbers.last().toString()
-                        expressionString = expressionString.filterIndexed { index, _ ->
-                            index < expressionString.length - 1 }
-
-                        expression.numbers[expression.numbers.lastIndex] = BigDecimal(expressionString)
-                        expression.setNumber(expression.size - 1, expression.numbers.last())
-                    }
-                } else {
-                    expression.remove(expression.size - 1)
-                }
-            }
+//
+//            if (expression.size > 0) {
+//                if (expression.getLast() is BigDecimal) {
+//                    if ((expression.getLast() as BigDecimal).toString().length == 1) {
+//                        expression.remove(expression.size - 1)
+//
+//                        if (expression.size == 0) {
+//                            expression.addNumber(BigDecimal(0))
+//                        }
+//                    } else {
+//                        var expressionString = expression.numbers.last().toString()
+//                        expressionString = expressionString.filterIndexed { index, _ ->
+//                            index < expressionString.length - 1 }
+//
+//                        expression.numbers[expression.numbers.lastIndex] = BigDecimal(expressionString)
+//                        expression.setNumber(expression.size - 1, expression.numbers.last())
+//                    }
+//                } else {
+//                    expression.remove(expression.size - 1)
+//                }
+//            }
+//
+            expression.delete()
 
             updateText()
         }
@@ -98,39 +110,31 @@ class MainActivity : AppCompatActivity() {
     inner class EqualsButtonListener : View.OnClickListener {
 
         override fun onClick(v: View?) {
-            expression.solve()
-            expression.clear()
-            expression.addNumber(expression.solution.round(MathContext(6, RoundingMode.HALF_UP)))
 
-            updateText(expression.solution.round(MathContext(6, RoundingMode.HALF_UP)).toString())
         }
 
     }
 
     inner class OperatorButtonsListener : View.OnClickListener {
-
         override fun onClick(v: View?) {
             if (v != null) {
-                when(v.id) {
+                when (v.id) {
                     R.id.btn_multiply -> expression.addOperator(Operator(Operator.MULTIPLY))
                     R.id.btn_divide -> expression.addOperator(Operator(Operator.DIVIDE))
                     R.id.btn_add -> expression.addOperator(Operator(Operator.ADD))
                     R.id.btn_subtract -> expression.addOperator(Operator(Operator.SUBTRACT))
                 }
 
-                updateText()
+                updateText(expression.solveHierarchy(expression.operators.last().second.hierarchy).toString())
             }
         }
-
     }
 
     inner class ACButtonListener : View.OnClickListener {
-
         override fun onClick(v: View?) {
-            expression.clear()
+            expression.clearAll()
             updateText()
         }
-
     }
 
     inner class NumButtonListener : View.OnClickListener {

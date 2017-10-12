@@ -1,314 +1,140 @@
 package com.muoq.calculator.logic
 
-/**
- * Created by victo on 20-09-2017.
- */
-
-import android.util.Log
 import java.math.BigDecimal
-import java.security.InvalidParameterException
 
-class Expression(stringArg: String = "0") {
+/**
+ * Created by victor on 09/10/2017.
+ */
+class Expression {
 
-    companion object {
-        val TAG = "CalculatorExpression"
-        val SYMBOL_LIMIT = 10
-    }
+    var numbers = mutableListOf<Pair<Int, BigDecimal>>()
+    var operators = mutableListOf<Pair<Int, Operator>>()
+    var expression = mutableListOf<Any>()
 
-    var size = 0
+    var expressionCaret = 0
 
-    var numbers: MutableList<BigDecimal> = mutableListOf()
-    var operators: MutableList<Operator> = mutableListOf()
-
-    private var expression: MutableList<MutableList<Any?>> = mutableListOf()
-    var fullExpression: MutableList<MutableList<Any?>> = mutableListOf()
-    //TODO: Implement expression modification functions to work with fullExpression (eg. addMember, setMember)
-
-    private var removeQueue: MutableList<Int> = mutableListOf()
-
-    var solution = BigDecimal(0)
-
-    init {
-
-        var prevIsNum = false
-        var prevIsOperator = false
-        var numToAdd = ""
-        var operatorToAdd = '*'
-
-        for (i in 0 until stringArg.length) {
-            if (stringArg[i].toInt() in 48..57) {
-                numToAdd += stringArg[i]
-                prevIsNum = true
-                if (prevIsOperator) {
-                    prevIsOperator = false
-                    addOperator(Operator(operatorToAdd))
-                }
-            } else if (stringArg[i] == ' ') {
-            } else if (stringArg[i] in listOf('(', ')')) {
-                if (prevIsOperator) {
-                    addOperator(Operator(operatorToAdd))
-                    prevIsOperator = false
-                } else if (prevIsNum) {
-                    addNumber(BigDecimal(numToAdd.toInt()))
-                    prevIsNum = false
-                    numToAdd = ""
-                }
-                addOperator(Operator(stringArg[i]))
-            } else {
-                operatorToAdd = stringArg[i]
-                prevIsOperator = true
-                if (prevIsNum) {
-                    prevIsNum = false
-                    addNumber(BigDecimal(numToAdd.toInt()))
-                    numToAdd = ""
-                }
-            }
-        }
-
-        if (prevIsNum) {
-            addNumber(BigDecimal(numToAdd.toInt()))
-        }
-
-    }
-
-    fun addOperator(operatorArg: Operator) {
-        var expressionStringSize = 0
-        expression.forEach {
-            expressionStringSize += it[1].toString().length
-        }
-
-        if (expressionStringSize >= SYMBOL_LIMIT) {
-            return
-        } else if (operators.isEmpty() || expression.last()[1] !is Operator) {
-            operators.add(operatorArg)
-            addMember(operators.lastIndex, valueOperator = operatorArg)
-
-        } else if (operatorArg.sequential || operators.last().sequential) {
-            operators.add(operatorArg)
-            addMember(operators.lastIndex, valueOperator = operatorArg)
-
-        } else if (expression.last()[1] is Operator) {
-            operators[operators.lastIndex] = operatorArg
-            setMemberData(expression.lastIndex, operators.lastIndex, valueOperator = operatorArg)
+    fun addNumber(num: BigDecimal) {
+        if (numbers.isEmpty()) {
+            numbers.add(Pair(expressionCaret, num))
+            expression.add(num)
+            expressionCaret++
+        } else if (operators.isEmpty() || numbers.last().first + 1 == expressionCaret) {
+            val magnitudePlus = numbers.last().second.multiply(BigDecimal(10))
+            numbers[numbers.lastIndex] = Pair(numbers.last().first, magnitudePlus.add(num))
+            expression[numbers[numbers.lastIndex].first] = magnitudePlus.add(num)
+        } else if (numbers.last().first < operators.last().first) {
+            numbers.add(Pair(expressionCaret, num))
+            expression.add(num)
+            expressionCaret++
         }
     }
 
-    fun addNumber(numberArg: BigDecimal) {
-        var expressionStringSize = 0
-        expression.forEach {
-            expressionStringSize += it[1].toString().length
-        }
-
-        if (expressionStringSize >= SYMBOL_LIMIT) {
-            return
-        } else if (numbers.isEmpty() || expression.last()[1] !is BigDecimal) {
-            numbers.add(numberArg)
-            addMember(numbers.lastIndex, valueBigDecimal = numberArg)
-        } else if (expression.last()[1] is BigDecimal) {
-            var magnitudePlus = numbers.last().multiply(BigDecimal(10))
-            numbers[numbers.lastIndex] = magnitudePlus.add(numberArg)
-            setNumber(expression.lastIndex,  numbers.last())
-        }
-    }
-
-    fun setNumber(index: Int, numberArg: BigDecimal) {
-        if (expression[index][1] is BigDecimal) {
-            expression[index][1] = numberArg
-            numbers[expression[index][0] as Int] = numberArg
-        } else {
-
-            var tempIndex = index
-            while (expression[tempIndex][1] !is BigDecimal) {
-                tempIndex--
-            }
-
-            var numbersIndex = expression[tempIndex][0] as Int + 1
-
-            if (numbers.size == numbersIndex) {
-                numbers.add(numberArg)
-            } else {
-                numbers[numbersIndex] = numberArg
-            }
-
-            expression[index][0] = numbersIndex
-            expression[index][1] = numberArg
-        }
-
-    }
-
-    fun setMemberData(i: Int, index: Int,
-                      valueBigDecimal: BigDecimal? = null, valueOperator: Operator? = null) {
-        if (expression.size < i) {
-            throw IndexOutOfBoundsException()
-        }
-
-        if (valueBigDecimal != null) {
-            expression[i] = mutableListOf(index, valueBigDecimal)
-        } else if (valueOperator != null) {
-            expression[i] = mutableListOf(index, valueOperator)
+    fun addOperator(operator: Operator) {
+        if (numbers.isEmpty() && operator.hierarchy == Operator.PARENTHESIS_HIERARCHY) {
+            operators.add(Pair(expressionCaret, operator))
+            expression.add(operator)
+            expressionCaret++
+        } else if (operators.isEmpty()) {
+            operators.add(Pair(expressionCaret, operator))
+            expression.add(operator)
+            expressionCaret++
+        } else if (operators.last().first + 1 == expressionCaret) {
+            operators[operators.lastIndex] = Pair(operators.last().first, operator)
+            expression[operators[operators.lastIndex].first] = operator
+        } else if (numbers.last().first + 1 == expressionCaret || operators.last().second.isSequential) {
+            operators.add(Pair(expressionCaret, operator))
+            expression.add(operator)
+            expressionCaret++
         }
     }
 
-    fun setNull(index: Int) {
-        expression[index] = mutableListOf(null, null)
-        fullExpression[index] = mutableListOf(null, null)
-    }
-
-    private fun addMember(index: Int,valueBigDecimal: BigDecimal? = null, valueOperator: Operator? = null) {
-        if (valueBigDecimal != null) {
-            expression.add(mutableListOf(index, valueBigDecimal))
-            fullExpression.add(mutableListOf(index, valueBigDecimal))
-        } else if (valueOperator != null) {
-            expression.add(mutableListOf(index, valueOperator))
-            fullExpression.add(mutableListOf(index, valueOperator))
-        } else {
-            throw InvalidParameterException("only one null parameter is permitted in this function.")
-        }
-
-        size++
-    }
-
-    fun get(index: Int): Any? {
-        return expression[index]
-    }
-
-    fun getList(): MutableList<MutableList<Any?>> {
-        return expression
-    }
-
-    fun getValueList(): MutableList<Any?> {
-        val returnList: MutableList<Any?> = mutableListOf()
-
-        for (i in 0 until expression.size) {
-            returnList.add(expression[i][1])
-        }
-
-        return returnList
-    }
-
-    fun getFull(): Expression {
-        var expressionString = ""
-
-        fullExpression.forEach {
-            expressionString += it[1].toString()
-        }
-
-        val returnExpression = Expression(expressionString)
-        return returnExpression
-    }
-
-    fun getNumber(index: Int): BigDecimal? {
-        if (expression[index][1] !is BigDecimal) {
-            return null
-        } else {
-            return expression[index][1] as BigDecimal
-        }
-    }
-
-    fun getOperator(index: Int): Operator? {
-        if (index < 0) {
-            return null
-        }
-        else if (expression[index][0] == null) {
-            return null
-        }
-        else if (expression[index][1] !is Operator) {
-            return null
-        } else {
-            return expression[index][1] as Operator
-        }
-    }
-
-    fun getLast(): Any? {
-        if (expression.size == 0)
-            return null
-        else
-            return expression.last()[1]
-    }
-
-    fun getOperandIndices(index: Int): Pair<Int, Int>? {
-        if (expression[index][1] !is Operator) {
-            return null
-        }
-
-        var loopCtrX = index
-        while (expression[loopCtrX][1] !is BigDecimal) {
-            if (loopCtrX == 0 || expression[index][1] == null) {
-                return null
-            }
-            loopCtrX--
-        }
-
-        var loopCtrY = index
-        while (expression[loopCtrY][1] !is BigDecimal) {
-            if (loopCtrY == expression.size - 1 || expression[index][1] == null) {
-                return null
-            }
-            loopCtrY++
-        }
-
-        return Pair(loopCtrX, loopCtrY)
-    }
-
-    fun queueRemove(index: Int) {
-        removeQueue.add(index)
-    }
-
-    fun removeQueued(): Int {
-        removeQueue.sort()
-        removeQueue.reverse()
-        for (e in removeQueue) {
-            expression.removeAt(e)
-            size--
-        }
-
-        Log.i(TAG, this.toString())
-
-        val removeQueueSize = removeQueue.size
-        removeQueue = mutableListOf()
-
-        return removeQueueSize
-    }
-
-    fun clear() {
+    fun clearAll() {
         numbers = mutableListOf()
         operators = mutableListOf()
         expression = mutableListOf()
-        size = 0
-        addNumber(BigDecimal(0))
+        expressionCaret = 0
+
+        numbers.add(Pair(0, BigDecimal(0)))
+        expression.add(BigDecimal(0))
+        expressionCaret++
     }
 
-    fun remove(index: Int) {
-        if (expression.size == 0) {
-            return
-        }
-        else if (expression[index][1] is Operator) {
-            operators.removeAt(expression[index][0] as Int)
-        } else {
-            numbers.removeAt(expression[index][0] as Int)
-        }
+    fun delete() {
+        if (numbers.isNotEmpty()) {
+            if (numbers.last().first + 1 == expressionCaret) {
+                if (numbers.last().second.toString().length > 1) {
+                    val number = numbers.last().second
 
-        expression.removeAt(index)
-        size--
-    }
+                    numbers[numbers.lastIndex] = Pair(numbers.last().first, BigDecimal(
+                            number.toString().removeRange(
+                            number.toString().length - 2, number.toString().length - 1
+                            )))
 
-    fun solve() {
-        val solver = Solver()
-        solution = solver.solve(this)
-    }
+                    expression[expression.lastIndex] = numbers.last().second
+                } else if (numbers.last().second.toString().length == 1) {
+                    numbers.removeAt(numbers.lastIndex)
+                    expression.removeAt(expression.lastIndex)
 
-    override fun toString(): String {
-        var returnString = ""
+                    expressionCaret--
 
-        expression.forEachIndexed {i, e ->
-            if (e[1] is Operator) {
-                returnString += (e[1] as Operator).toString()
+                    if (numbers.size == 0) {
+                        numbers.add(Pair(0, BigDecimal(0)))
+                        expression.add(BigDecimal(0))
+
+                        expressionCaret++
+                    }
+
+                    return
+                }
             }
-            else if (e[1] is BigDecimal)
-                returnString += (e[1] as BigDecimal).toString()
         }
 
-        return returnString
+        if (operators.isNotEmpty()) {
+            if (operators.last().first + 1 == expressionCaret) {
+                operators.removeAt(operators.lastIndex)
+                expression.removeAt(expression.lastIndex)
+
+                expressionCaret--
+            }
+        }
+    }
+
+    fun getExpressionAsString2(): String {
+        var expressionString = ""
+        expression = mutableListOf()
+        var expressionPosition = 0
+        var numbersCtr = 0
+        var operatorsCtr = 0
+        val combinedListSize = numbers.size + operators.size
+        for (i in 0 until combinedListSize) {
+            if (numbersCtr < numbers.size && numbers[numbersCtr].first == expressionPosition) {
+                expression.add(numbers[numbersCtr])
+                expressionString += numbers[numbersCtr].second.toString()
+                numbersCtr++
+                expressionPosition++
+            } else if (operatorsCtr < operators.size && operators[operatorsCtr].first == expressionPosition) {
+                expression.add(operators[operatorsCtr])
+                expressionString += operators[operatorsCtr].second.toString()
+                operatorsCtr++
+                expressionPosition++
+            }
+        }
+
+        return expressionString
+    }
+
+    fun getExpressionAsString(): String {
+
+        if (expression.size == 1 && expression[0] == BigDecimal(0))
+            return ""
+
+        var expressionString = ""
+
+        expression.forEach {
+            expressionString += it.toString()
+        }
+
+        return expressionString
     }
 
 }

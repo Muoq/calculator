@@ -33,7 +33,7 @@ class Operator private constructor() {
     var hierarchy = MULTIPLICATION_HIERARCHY
     var ID = MULTIPLY
 
-    var sequential = false
+    var isSequential = false
 
     constructor(operationIDArg: Int): this() {
         if (operationIDArg != MULTIPLY) {
@@ -56,7 +56,7 @@ class Operator private constructor() {
         ID = operationIDArg
         hierarchy = operationIDArg / 2
 
-        sequential = ID == O_PARENTHESIS || ID == C_PARENTHESIS
+        isSequential = ID == O_PARENTHESIS || ID == C_PARENTHESIS
 
         when (ID) {
             O_PARENTHESIS, C_PARENTHESIS-> operation = PARENTHESIS_FUN
